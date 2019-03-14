@@ -77,7 +77,7 @@ void publish_message(const char* message) {
 		}
 void readSensorValues(){
 		int h = 40 ;
-		String message = 	"{\"eventName\":\"getDistance\",\"status\":\"none\",\"evenparam\":{\"distance\":\"" + 	String(h) + "\"},\"id\":\""+ DEVICE_SERIAL +"\"}";		
+		String message = "{\"eventName\":\"getDistance\",\"status\":\"none\",\"evenparam\":{\"distance\":\"" + 	String(h) + "\"},\"id\":\""+ DEVICE_SERIAL +"\"}";		
       		char* msg = (char*)message.c_str();
 		publish_message(msg); //send the event to backend
 		}
@@ -89,7 +89,7 @@ void send_event() {
 
 void setup() {
 	// put your setup code here, to run once:
-	Serial.begin(9600); //initialise serail port
+	Serial.begin(9600); //initialise serial port
 	setup_wifi(); //initialise wifi
 	client.setServer(mqtt_server, 1883); //establish mqtt server connection
 	Serial.println("Distance from Ultrasonic Sensor\n\n"); // any message to print to the serial console
