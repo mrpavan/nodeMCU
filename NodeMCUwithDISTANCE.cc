@@ -7,21 +7,17 @@
 WiFiClient espClient;
 PubSubClient client(espClient);
 /* WIFI settings */
-const char* ssid = "KumarsiPhone";
-const char* password = "0105000008";
-const char* mqttusername = "lolin-nodemcuv3-ultrasonic_1958";
-const char* mqttpassword = "1552535810_1958";
-String DEVICE_SERIAL = "NodeMCUUltrasonic01";
+const char* ssid = "Wifiname"; //Enter your wifi ssid name
+const char* password = "Password"; //Enter your Wifi Password
+const char* mqttusername = "username"; //MQTT USER CREDENTIALS from Device Onboarding Page
+const char* mqttpassword = "password"; //MQTT USER CREDENTIALS from Device Onboarding Page
+String DEVICE_SERIAL = "SNUltrasonic01"; //Serailno of the device from Device Operation page
 //Backend credentials
 const char* mqtt_server = "mqtt.iot.ideamart.io"; //mqtt.exampledomain.com
-char* EVENT_TOPIC = "lolin/nodemcuv3/ultrasonic/common";
-String SUB_TOPIC_STRING = "+/" + DEVICE_SERIAL + "/lolin/nodemcuv3/ultrasonic/sub";
-String PUB_TOPIC_STRING = "/" + DEVICE_SERIAL + "/lolin/nodemcuv3/ultrasonic/pub";
+char* EVENT_TOPIC = "lolin/nodemcuv3/ultrasonic/common"; //EVENT Topic from Device Onboarding Page
+String SUB_TOPIC_STRING = "+/" + DEVICE_SERIAL + "/lolin/nodemcuv3/ultrasonic/sub"; //Action Topic from Device Onboarding Page
+String PUB_TOPIC_STRING = "/" + DEVICE_SERIAL + "/lolin/nodemcuv3/ultrasonic/pub"; //Action Topic Response from Device Onboarding Page
 char msg[1024];
-//String data = "";
-//String actionData = "";
-//int actionParameter1;
-//int actionParameter2;
 
 //====================================================Connecting to Wifi
 void setup_wifi() {
@@ -42,55 +38,16 @@ void setup_wifi() {
 	Serial.println(WiFi.localIP());
 	//=====================================================MQTT
 	}
-/*
 //receiving a message
-void callback(char* topic, byte* payload, long length) {
-	yield();
-	delay(300);
-	for (int i = 0; i < length; i++) {
-		msg[i] = NULL;
-	}
-	Serial.print("Message arrived [");
-	Serial.print(SUB_TOPIC_STRING);
-	Serial.print("] ");
-	//NodeMCU.print("L1:");
-	for (int i = 0; i < length; i++) {
-		msg[i] = (char)payload[i];
-		Serial.print(msg[i]);
-		//NodeMCU.print(msg[i]);
-		}
-		// NodeMCU.println();
-		// delay(3000);
-    StaticJsonDocument<800> root;
-    deserializeJson(root, msg);
-   
-		if (strcmp(root["action"], "turnOn") == 0) {
-			actionParameter1 = (int)root["param"]["intensity"];
-			analogWrite(D1, actionParameter1);
-			}
-		else if (strcmp(root["action"], "turnOff") == 0) {
-			analogWrite(D1, 0);
-			//actionParameter2 = root["param"]["msg"].as<String>();
-			}
-			else if(strcmp(root["action"], "deviceStatus") == 0) {
-					//OK action is success. Let's report this to backend
-					//Let's derive the unique ID of the received action message
-					String topicStr(topic);
-					String uniqueID = topicStr.substring(0, topicStr.indexOf('/'));
-					//Let's add this unique ID to pub topic of the device
-					String pubtopic = uniqueID + PUB_TOPIC_STRING;
-					//Publish the response message to backend
-					char* pubmsg = "{\"deviceStatus\":\"OK\"}\"";
-					client.publish(pubtopic.c_str(), pubmsg);
-					Serial.println("");
-					Serial.println("Response published to:");
-					Serial.print(pubtopic);
-						}
-					Serial.println(data);
-					Serial.println();
-					yield();
-			} 
-      */
+void callback(char* topic, byte* payload,long length) {
+  Serial.print("Message arrived [");
+  Serial.print(SUB_TOPIC_STRING);
+  Serial.print("] ");
+  for (int i = 0; i < length; i++) {
+    msg[i] = (char)payload[i];
+  }
+  //do_actions(msg);
+}
 void reconnect() {
 	// Loop until we're reconnected
 	while (!client.connected()) {
@@ -99,7 +56,7 @@ void reconnect() {
 		String clientId = "ESP8266Client-";
 		clientId += String(random(0xffff), HEX);
 		// Attempt to connect
-		if (client.connect(clientId.c_str(), "lolin-nodemcuv3-ultrasonic_1958", "1552535810_1958")) {
+		if (client.connect(clientId.c_str(), "mqttusername", "mqttpassword")) {
 			Serial.println("connected");
 			//subscribe to the topic
 			const char* SUB_TOPIC = SUB_TOPIC_STRING.c_str();
@@ -115,16 +72,14 @@ void reconnect() {
 		}
 
 void publish_message(const char* message) {
-	Serial.println(message);
-	client.publish(EVENT_TOPIC, message);
+	Serial.println(message); //print to the console
+	client.publish(EVENT_TOPIC, message); //post to the Event topic on the server
 		}
-		void readSensorValues(){
-			float h = 40 ;//dht.readHumidity();
-			//float t = 23 ;//dht.readTemperature(); 
-			String message = 	"{\"eventName\":\"getDistance\",\"status\":\"none\",\"evenparam\":{\"distance\":\"" + 	String(h) + "\"},\"id\":\""+ DEVICE_SERIAL +"\"}";		
-      char* msg = (char*)message.c_str();
-			publish_message(msg); //send the event to backend
-			//Serial.println(message);
+void readSensorValues(){
+		int h = 40 ;
+		String message = 	"{\"eventName\":\"getDistance\",\"status\":\"none\",\"evenparam\":{\"distance\":\"" + 	String(h) + "\"},\"id\":\""+ DEVICE_SERIAL +"\"}";		
+      		char* msg = (char*)message.c_str();
+		publish_message(msg); //send the event to backend
 		}
 
 void send_event() {
@@ -134,11 +89,10 @@ void send_event() {
 
 void setup() {
 	// put your setup code here, to run once:
-	Serial.begin(9600);
-	pinMode(D1, OUTPUT);
-	setup_wifi();
-	client.setServer(mqtt_server, 1883);
-	Serial.println("Distance from Ultrasonic Sensor\n\n");
+	Serial.begin(9600); //initialise serail port
+	setup_wifi(); //initialise wifi
+	client.setServer(mqtt_server, 1883); //establish mqtt server connection
+	Serial.println("Distance from Ultrasonic Sensor\n\n"); // any message to print to the serial console
 	}
 void loop() {
 	// put your main code here, to run repeatedly:
@@ -149,7 +103,7 @@ void loop() {
 			reconnect();
 			}
 	
-	readSensorValues(); 
-	delay(10000);
-	client.loop();
+	readSensorValues();  //Read vlaues from sensors
+	delay(10000); // every 10 seconds
+	client.loop(); //repeat
 	}
